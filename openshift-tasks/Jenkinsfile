@@ -56,7 +56,7 @@ stage('Paralel stage') {
 
         sh "${mvnCmd} test"
         
-      }
+      },
 
       // Using Maven to call SonarQube for Code Analysis
       'code analysis': {
