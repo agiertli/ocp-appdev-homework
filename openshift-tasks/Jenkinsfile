@@ -95,8 +95,7 @@ stage('Paralel stage') {
 
       // Deploy the built image to the Development Environment.
       stage('Deploy to Dev') {
-        echo "Deploying container image to Development Project"
-      steps {
+      
         echo "Deploy container image to Development Project"
         script {
              openshift.withCluster() {
@@ -125,7 +124,7 @@ openshift.selector("dc", "tasks").rollout().latest();
         }
 
       }
-    }
+    
         
 
         // TBD: Deploy to development Project
