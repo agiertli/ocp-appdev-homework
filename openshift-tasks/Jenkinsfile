@@ -158,11 +158,53 @@ openshift.selector("dc", "tasks").rollout().latest();
         //      Set Image, Set VERSION
         //      Deploy into the other application
         //      Make sure the application is running and ready before proceeding
+
+
+        script {
+            
+            openshift.withCluster() {
+              openshift.withProject("${GUID}-tasks-prod")  {
+                  
+      //      1. Determine which application is active  
+      
+           activeApp = sh(returnStdout: true, script: "oc get route -n ${GUID}-tasks-prod tasks -o jsonpath='{ .spec.to.name }'").trim()
+
+                  if (activeApp == "tasks-blue") {
+                     destApp = "tasks-green"
+                  } else {
+                      destApp = "tasks-blue"
+                  }
+
+                      //  2. Update the image for the other application     
+    openshift.set("env", "dc/${destApp}", "VERSION=${prodTag}")
+    openshift.set("image", "dc/${destApp}", "${destApp}=image-registry.openshift-image-registry.svc:5000/ag-tasks-dev/tasks:${prodTag}")
+      //      4. Update Config maps for other application
+
+openshift.delete("configmap/${destApp}-config")
+openshift.create("configmap","${destApp}-config","--from-file=\"application-users.properties=./configuration/application-users.properties\"","--from-file=\"application-roles.properties=./configuration/application-roles.properties\"")
+        // 3. Deploy into the other application
+openshift.selector("dc", "${destApp}").rollout().latest();  
+
+
+       def dc = openshift.selector("dc", "${destApp}").object()
+       def dc_version = dc.status.latestVersion
+       def rc = openshift.selector("rc", "${destApp}-${dc_version}").object()
+
+       echo "Waiting for ReplicationController ${destApp}-${dc_version} to be ready"
+       while (rc.spec.replicas != rc.status.readyReplicas) {
+         sleep 5
+         rc = openshift.selector("rc", "${destApp}-${dc_version}").object()
+       }
+              }  
+            }
+        }
+
+
       }
 
       stage('Switch over to new Version') {
         echo "Switching Production application to ${destApp}."
-        // TBD: Execute switch
+   sh "oc patch -n ${GUID}-tasks-prod route/tasks -p \'{\"spec\":{\"to\":{\"name\":\"${destApp}\"}}}\'"
       }
     }
   }
