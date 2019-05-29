@@ -101,7 +101,7 @@ stage('Paralel stage') {
              openshift.withCluster() {
                 openshift.withProject("${GUID}-tasks-dev") {
                  // 1. Update the image on the dev deployment config
-openshift.set("env", "dc/tasks", "VERSION=tasks-dev - ${devTag}")
+openshift.set("env", "dc/tasks", "VERSION=tasks-dev-${devTag}")
 openshift.set("image", "dc/tasks", "tasks=docker-registry.default.svc:5000/${GUID}-tasks-dev/tasks:${devTag}")
      // 2. Update the config maps with the potentially changed properties files
 openshift.delete("configmap/tasks-config")
@@ -176,7 +176,7 @@ openshift.selector("dc", "tasks").rollout().latest();
                   }
 
                       //  2. Update the image for the other application     
-    openshift.set("env", "dc/${destApp}", "VERSION=${destApp} ${prodTag}")
+    openshift.set("env", "dc/${destApp}", "VERSION=${destApp}-${prodTag}")
     openshift.set("image", "dc/${destApp}", "${destApp}=docker-registry.default.svc:5000/${GUID}-tasks-dev/tasks:${prodTag}")
       //      4. Update Config maps for other application
 
