@@ -140,8 +140,8 @@ openshift.selector("dc", "tasks").rollout().latest();
                 script {
             
             openshift.withCluster() {
-                openshift.withProject("${GUID}-tasks-prod") {
-                openshift.tag("${GUID}-tasks-dev/tasks:${devTag}", "${GUID}-tasks-dev/tasks:${prodTag}")  
+                openshift.withProject("${GUID}-tasks-dev") {
+                openshift.tag("tasks:${devTag}", "tasks:${prodTag}")  
 
                 }
             }
@@ -177,7 +177,7 @@ openshift.selector("dc", "tasks").rollout().latest();
 
                       //  2. Update the image for the other application     
     openshift.set("env", "dc/${destApp}", "VERSION=${prodTag}")
-    openshift.set("image", "dc/${destApp}", "${destApp}=image-registry.openshift-image-registry.svc:5000/ag-tasks-dev/tasks:${prodTag}")
+    openshift.set("image", "dc/${destApp}", "${destApp}=docker-registry.default.svc:5000/${GUID}-tasks-dev/tasks:${prodTag}")
       //      4. Update Config maps for other application
 
 openshift.delete("configmap/${destApp}-config")
