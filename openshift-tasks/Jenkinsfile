@@ -122,11 +122,7 @@ openshift.selector("dc", "tasks").rollout().latest();
        }
     }
         }
-
-      }
-    
-        
-
+        }
         // TBD: Deploy to development Project
         //      Set Image, Set VERSION
         //      Make sure the application is running and ready before proceeding
@@ -137,8 +133,19 @@ openshift.selector("dc", "tasks").rollout().latest();
         echo "Copy image to Nexus container registry"
 
         // TBD: Copy image to Nexus container registry
+        sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds=jenkins:\$(oc whoami -t) --dest-creds=admin:redhat docker://docker-registry.default.svc:5000/${GUID}-tasks-dev/tasks:${devTag} docker://nexus-registry.gpte-hw-cicd.svc.cluster.local:5000/${GUID}-tasks-dev/tasks:${devTag}"
+
 
         // TBD: Tag the built image with the production tag.
+                script {
+            
+            openshift.withCluster() {
+                openshift.withProject("${GUID}-tasks-prod") {
+                openshift.tag("${GUID}-tasks-dev/tasks:${devTag}", "${GUID}-tasks-dev/tasks:${prodTag}")  
+
+                }
+            }
+        }
       }
 
       // Blue/Green Deployment into Production
